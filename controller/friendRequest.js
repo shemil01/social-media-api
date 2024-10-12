@@ -1,16 +1,12 @@
-const { request } = require("express");
 const FriendRequest = require("../model/FriendRequest");
 const User = require("../model/User");
-const jwt = require('jsonwebtoken')
 
 //send friend request
 
-const sendRequest = async(req, res) => {
+const sendRequest = async (req, res) => {
   const { recipientId } = req.body;
-  const { token } = req.cookies
-  const valid =  jwt.verify(token, process.env.JWT_SECRET);
-  const userId = valid.id;
- 
+  const userId = req.user.id;
+
   // check if the recipient exist
 
   const recipient = await User.findById(recipientId);
@@ -57,33 +53,36 @@ const sendRequest = async(req, res) => {
 };
 
 // get received friend request
-const getReceivedRequest = async(req, res) => {
-  const { token } = req.cookies
-  const valid = jwt.verify(token, process.env.JWT_SECRET);
-  const userId = valid.id;
+const getReceivedRequest = async (req, res) => {
+  const userId = req.user.id;
   const requests = await FriendRequest.find({
     recipient: userId,
     status: "pending",
-  })
-  .populate("requester", "username email");
-  if(requests.length === 0){
-    return res.status(404).send('no request found')
+  }).populate("requester", "username email");
+  if (requests.length === 0) {
+    return res.status(404).send("no request found");
   }
-  console.log(requests)
-  res.status(200).json(requests)
+  console.log(requests);
+  res.status(200).json(requests);
 };
 
 // accept friend request
-const acceptRequest = async(req, res) => {
+const acceptRequest = async (req, res) => {
   const { requestId } = req.params;
-  const { token } = req.cookies
-  const valid =  jwt.verify(token, process.env.JWT_SECRET);
-  const userId = valid.id;
+
+  const userId = req.user.id;
 
   const request = await FriendRequest.findById(requestId);
 
   if (!request || request.status !== "pending") {
     return res.status(404).json({ message: "Friend request not found" });
+  }
+
+  // Check if the current user is the recipient of the friend request
+  if (request.recipient.toString() !== userId) {
+    return res.status(403).json({
+      message: "You are not authorized to accept this friend request",
+    });
   }
 
   // add the users both firend
@@ -104,7 +103,9 @@ const acceptRequest = async(req, res) => {
 
 // Rject friend request
 
-const rejectRequest = async(req, res) => {
+const rejectRequest = async (req, res) => {
+ 
+  const userId = req.user.id;
   const { requestId } = req.params;
 
   const request = await FriendRequest.findById(requestId);
@@ -114,14 +115,19 @@ const rejectRequest = async(req, res) => {
     });
   }
 
+  // Check if the current user is the recipient of the friend request
+  if (request.recipient.toString() !== userId) {
+    return res.status(403).json({
+      message: "You are not authorized to reject this friend request",
+    });
+  }
+
   // update the status of friend request to rejected
   request.status = "rejected";
   await request.save();
 
   res.status(200).json({ message: "Friend request rejected" });
 };
-
-
 
 module.exports = {
   sendRequest,

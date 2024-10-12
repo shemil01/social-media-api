@@ -1,14 +1,13 @@
 const Comment = require("../model/Comment");
 const Post = require("../model/Post");
-const jwt = require("jsonwebtoken");
+
 
 // create comment
 exports.addComment = async (req, res) => {
   const { postId } = req.params;
   const { content } = req.body;
-  const { token } = req.cookies;
- const valid = jwt.verify(token,process.env.JWT_SECRET)
- const userId = valid.id
+ 
+ const userId = req.user.id
 
   // valid input
   if (!content) {
