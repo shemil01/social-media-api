@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken')
 const sendRequest = async(req, res) => {
   const { recipientId } = req.body;
   const { token } = req.cookies
-  const valid = await jwt.verify(token, process.env.JWT_SECRET);
+  const valid =  jwt.verify(token, process.env.JWT_SECRET);
   const userId = valid.id;
  
   // check if the recipient exist
@@ -59,7 +59,7 @@ const sendRequest = async(req, res) => {
 // get received friend request
 const getReceivedRequest = async(req, res) => {
   const { token } = req.cookies
-  const valid = await jwt.verify(token, process.env.JWT_SECRET);
+  const valid = jwt.verify(token, process.env.JWT_SECRET);
   const userId = valid.id;
   const requests = await FriendRequest.find({
     recipient: userId,
@@ -76,6 +76,9 @@ const getReceivedRequest = async(req, res) => {
 // accept friend request
 const acceptRequest = async(req, res) => {
   const { requestId } = req.params;
+  const { token } = req.cookies
+  const valid =  jwt.verify(token, process.env.JWT_SECRET);
+  const userId = valid.id;
 
   const request = await FriendRequest.findById(requestId);
 
@@ -84,11 +87,11 @@ const acceptRequest = async(req, res) => {
   }
 
   // add the users both firend
-  await User.findByIdAndUpdate(req.userId, {
+  await User.findByIdAndUpdate(userId, {
     $push: { friends: request.requester },
   });
   await User.findByIdAndUpdate(request.requester, {
-    $push: { friends: req.userId },
+    $push: { friends: userId },
   });
 
   // update status

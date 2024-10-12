@@ -52,7 +52,7 @@ const userRegister = async (req, res) => {
 
 const userLogin = async (req, res) => {
   const { email, password } = req.body;
-  console.log(req.body)
+  
   if  (!(email && password)) {
     res.status(400).json({
       message: "Please fill all field",
