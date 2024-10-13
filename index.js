@@ -6,7 +6,7 @@ const dbConnect = require('./config/dbConnection')
 const dotenv = require("dotenv");
 dotenv.config({ path: "./config/.env" });
 const cookieParser = require("cookie-parser");
-const authRout = require('./routes/authRoutes')
+const userRout = require('./routes/userRoutes')
 const friendRout = require('./routes/friendRutes')
 const postRout  = require('./routes/postRoutes')
 
@@ -17,7 +17,7 @@ app.use(
 app.use(express.json())
 app.use(cookieParser());
 
-app.use('/api',authRout)
+app.use('/api',userRout)
 app.use('/api',friendRout)
 app.use('/api',postRout )
 

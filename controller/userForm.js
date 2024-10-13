@@ -1,6 +1,8 @@
 const userSchema = require("../model/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const User = require("../model/User");
+const Post = require("../model/Post");
 
 // user registration
 
@@ -52,15 +54,15 @@ const userRegister = async (req, res) => {
 
 const userLogin = async (req, res) => {
   const { email, password } = req.body;
-  
-  if  (!(email && password)) {
+
+  if (!(email && password)) {
     res.status(400).json({
       message: "Please fill all field",
     });
   }
 
   const userData = await userSchema.findOne({
-  email
+    email,
   });
   if (!userData) {
     res.status(404).json({
@@ -93,4 +95,33 @@ const userLogin = async (req, res) => {
   });
 };
 
-module.exports = { userRegister,userLogin };
+// user logout
+const logout = async (req, res) => {
+  res.clearCookie("token").json({ message: "Logged out successfully" });
+};
+
+// view  user profail
+const viewProfail = async (req, res) => {
+  const userId = req.user.id;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Find the user's posts
+  const posts = await Post.find({ author: userId })
+    .populate("author", "username")
+    .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      userProfile: {
+        username: user.username,
+        email: user.email,
+        friends: user.friends,
+      },
+      userPosts: posts,
+    });
+};
+
+module.exports = { userRegister, userLogin, logout, viewProfail };
