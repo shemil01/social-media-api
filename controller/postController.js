@@ -108,7 +108,7 @@ exports.addLike = async (req, res) => {
 exports.removeLike = async (req, res) => {     
   const userId = req.user.id;
   const {postId} = req.params;
-  console.log(postId)
+  
   const post = await Post.findById(postId);
   if (!post) {
     return res.status(404).json({ message: "Post not found" });
