@@ -23,8 +23,8 @@ exports.viewProfail = async (req, res) => {
       bio:user.bio,
       profailPicture:user.profailPicture,
       friends: user.friends,
-
-    },
+      
+    },  
     userPosts: posts,
   });
 };
@@ -40,7 +40,7 @@ exports.editProfail = async (req, res) => {
       username,
       email,
       bio: bio || undefined,   
-      profailPicture: req.cloudinaryImageUrl,
+      profailPicture:req.cloudinaryProfileImageUrl ,
     },
     { new: true }
   );

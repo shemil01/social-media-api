@@ -4,9 +4,10 @@ const commentController = require("../controller/commentController");
 const router = express.Router();
 const userAuth = require("../middleware/userAuth");
 const { tryCatch } = require("../utils/tryCatch");
+const {uploadImage} = require('../middleware/upload')
 
 // post creation
-router.post("/add-post", userAuth, tryCatch(postController.createPost));
+router.post("/add-post", userAuth,uploadImage, tryCatch(postController.createPost));
 
 // add comment to post
 router.post(

@@ -1,20 +1,20 @@
 const Post = require("../model/Post");
 const User = require("../model/User");
 const Comment = require("../model/Comment");
+const cloudinary = require("cloudinary").v2;
 
 // create post
 exports.createPost = async (req, res) => {
-  const { content } = req.body;
+  const { caption } = req.body;
   const userId = req.user.id;
 
-  if (!content) {
-    return res.status(400).json({ message: "Type a content" });
-  }
+  
 
   // create and save the new post
   const newPost = new Post({
     author: userId,
-    content,
+    postImage:req.cloudinaryPostImageUrl,
+    caption,
   });
   await newPost.save();
   res.status(201).json({

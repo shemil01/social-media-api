@@ -5,37 +5,41 @@ const cloudinary = require("../utils/cloudinary");
 
 // Multer storage configuration
 const storage = multer.diskStorage({});
+const upload = multer({ storage: storage }).fields([
+  { name: "profileImage", maxCount: 1 },
+  { name: "postImage", maxCount: 1 },
+]);
 
-// Multer upload configuration
-const upload = multer({ storage: storage });
-
-// Middleware to upload image to Cloudinary or use provided URL
+// Middleware to upload images to Cloudinary
 const uploadImage = (req, res, next) => {
-  upload.single("profailPicture")(req, res, async (error) => {
+  upload(req, res, async (error) => {
     if (error) {
       console.error("Multer error:", error);
       return res.status(500).json({ message: "File upload error" });
     }
 
     try {
-      // If an image file is uploaded via multer
-      if (req.file) {
-        const result = await cloudinary.uploader.upload(req.file.path);
-        req.cloudinaryImageUrl = result.secure_url;
+      // Check if `profileImage` was uploaded and process it
+      if (req.files && req.files.profileImage) {
+        const result = await cloudinary.uploader.upload(req.files.profileImage[0].path);
+        req.cloudinaryProfileImageUrl = result.secure_url;
+        await fs.unlink(req.files.profileImage[0].path); // Delete local file after upload
+      }
 
-        // Delete the local file after uploading
-        await fs.unlink(req.file.path);
-      } else if (req.body.imageURL) {
-        // If an image URL is provided instead of a file
-        req.cloudinaryImageUrl = req.body.imageURL;
+      // Check if `postImage` was uploaded and process it
+      if (req.files && req.files.postImage) {
+        const result = await cloudinary.uploader.upload(req.files.postImage[0].path);
+        req.cloudinaryPostImageUrl = result.secure_url;
+        await fs.unlink(req.files.postImage[0].path); // Delete local file after upload
       }
 
       next();
     } catch (uploadError) {
-      console.error("Error uploading to Cloudinary:", uploadError);
+      console.error("Error uploading to Cloudinary:", uploadError);          
       return res.status(500).json({ message: "Image upload failed" });
     }
   });
 };
 
 module.exports = { uploadImage };
+ 

@@ -7,7 +7,7 @@ const sendRequest = async (req, res) => {
   const { recipientId } = req.body;
 
   const userId = req.user.id;
-  console.log(userId) 
+  
 
   // check if the recipient exist
 
@@ -131,9 +131,39 @@ const rejectRequest = async (req, res) => {
   res.status(200).json({ message: "Friend request rejected" });
 };
 
+// remove/unfollow friend
+const removeFriend = async(req,res) => {
+  const { friendId } = req.params;
+
+  const userId = req.user.id;
+
+
+  // check he is in friend list
+  const isFriend = await User.findOne({
+    _id: userId,
+    friends: friendId,
+  });
+if(!isFriend){
+  return res.status(404).send("Not your friend")
+}
+
+  // remove from firend list
+  await User.findByIdAndDelete(userId, {
+    $push: { friends: friendId },
+  });
+  await User.findByIdAndUpdate(friendId, {
+    $push: { friends: userId },
+  });
+res.status(200).json({
+  message:"removed from friend list  "
+})
+
+}
+
 module.exports = {
   sendRequest,
   getReceivedRequest,
   acceptRequest,
   rejectRequest,
+  removeFriend
 };
